@@ -1,26 +1,35 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { Toaster } from "@/components/ui/sonner";
+import "@/i18n";
+import { AppProvider, useApp } from "@/state/AppContext";
+import { TopBar } from "@/components/TopBar";
+import { Wizard } from "@/components/Wizard";
+import { Manager } from "@/components/Manager";
+import { Wiki } from "@/components/Wiki";
 
 export const Route = createFileRoute("/")({
   component: Index,
 });
 
-// IMPORTANT: Replace this placeholder. For sites with multiple pages (About, Services, Contact, etc.),
-// create separate route files (about.tsx, services.tsx, contact.tsx) — don't put all pages in this file.
-function PlaceholderIndex() {
+function Index() {
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
+    <AppProvider>
+      <Shell />
+      <Toaster position="bottom-right" theme="dark" richColors closeButton />
+    </AppProvider>
   );
 }
 
-function Index() {
-  return <PlaceholderIndex />;
+function Shell() {
+  const { tab } = useApp();
+  return (
+    <div className="min-h-screen">
+      <TopBar />
+      <main>
+        {tab === "wizard" && <Wizard />}
+        {tab === "manager" && <Manager />}
+        {tab === "wiki" && <Wiki />}
+      </main>
+    </div>
+  );
 }
