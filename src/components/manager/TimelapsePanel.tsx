@@ -93,7 +93,8 @@ export function TimelapsePanel() {
         "out.mp4",
       ]);
       const data = (await ff.readFile("out.mp4")) as Uint8Array;
-      downloadBlob(new Blob([data as Uint8Array<ArrayBuffer>], { type: "video/mp4" }), `openbrush_timelapse_${Date.now()}.mp4`);
+      const copy = new Uint8Array(data as Uint8Array);
+      downloadBlob(new Blob([copy], { type: "video/mp4" }), `openbrush_timelapse_${Date.now()}.mp4`);
     } catch (err) {
       console.error(err);
       toast.error("MP4 export failed");
