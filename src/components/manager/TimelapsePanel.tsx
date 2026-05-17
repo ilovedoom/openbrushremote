@@ -38,7 +38,7 @@ export function TimelapsePanel() {
 
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const assignedRef = useRef<string[]>([]);
-  assignedRef.current = assigned.length ? assigned : selectedIds;
+  assignedRef.current = assigned.length ? assigned : effectiveSelectedIds;
 
   // beep
   const beep = () => {
@@ -58,7 +58,7 @@ export function TimelapsePanel() {
 
   const captureNow = async () => {
     const ids = assignedRef.current;
-    const targets = headsets.filter((h) => ids.includes(h.id));
+    const targets = effectiveHeadsets.filter((h) => ids.includes(h.id));
     await Promise.all(
       targets.map(async (h) => {
         const blob = await fetchPreviewBlob(h.ip);
@@ -127,7 +127,7 @@ export function TimelapsePanel() {
         if (next >= totalSec) {
           // session ended
           const ids = assignedRef.current;
-          const names = headsets.filter((h) => ids.includes(h.id)).map((h) => h.name).join(", ") || "—";
+          const names = effectiveHeadsets.filter((h) => ids.includes(h.id)).map((h) => h.name).join(", ") || "—";
           toast.success(t("manager.timelapse.ended", { name: names }));
           beep();
           setRunning(false);
@@ -142,7 +142,7 @@ export function TimelapsePanel() {
 
   const start = async () => {
     if (totalSec <= 0) return;
-    if ((assigned.length ? assigned : selectedIds).length === 0) {
+    if ((assigned.length ? assigned : effectiveSelectedIds).length === 0) {
       toast.error(t("manager.preview.none"));
       return;
     }
@@ -171,7 +171,7 @@ export function TimelapsePanel() {
           >
             {t("manager.timelapse.allSelected")}
           </button>
-          {headsets.map((h) => {
+          {effectiveHeadsets.map((h) => {
             const on = assigned.includes(h.id);
             return (
               <button
