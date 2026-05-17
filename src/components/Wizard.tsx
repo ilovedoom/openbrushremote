@@ -371,7 +371,7 @@ export function Wizard() {
               <button onClick={() => setStep(4)} className="btn-base btn-ghost">← {t("common.back")}</button>
               <div className="flex gap-2">
                 <button onClick={() => setStep(6)} className="btn-base btn-secondary">{t("wizard.step5.skipStep")}</button>
-                <button onClick={async () => { await joinMp(); setStep(6); }} className="btn-base btn-primary">🔗 {t("wizard.step5.join")}</button>
+                <FBtn className="btn-base btn-primary" onClickAsync={async () => { const r = await joinMp(); setTimeout(() => setStep(6), 800); return r; }}>🔗 {t("wizard.step5.join")}</FBtn>
               </div>
             </div>
           </section>
