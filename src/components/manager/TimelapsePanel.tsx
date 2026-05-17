@@ -6,12 +6,22 @@ import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { fetchToU8 } from "@/lib/ffmpegLoader";
 import { useApp } from "@/state/AppContext";
 import { fetchPreviewBlob } from "@/lib/openbrush";
+import { FBtn, type FBtnToast } from "@/components/ui/FBtn";
 
 type Frame = { headsetId: string; headsetName: string; blob: Blob; filename: string };
 
+// Tiny 1x1 transparent PNG for demo capture fallback
+const DEMO_PNG_B64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
+async function demoBlob(): Promise<Blob> {
+  const bin = atob(DEMO_PNG_B64);
+  const arr = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+  return new Blob([arr], { type: "image/png" });
+}
+
 export function TimelapsePanel() {
   const { t } = useTranslation();
-  const { headsets, selectedIds } = useApp();
+  const { effectiveHeadsets, effectiveSelectedIds } = useApp();
 
   const [assigned, setAssigned] = useState<string[]>([]); // headset ids; empty = all selected
   const [min, setMin] = useState(5);
