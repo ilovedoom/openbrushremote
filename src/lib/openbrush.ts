@@ -45,11 +45,11 @@ export async function sendCommand(ip: string, command: string, value?: string | 
   }
 }
 
-export async function ping(ip: string, timeoutMs = 3000): Promise<boolean> {
+export async function ping(ip: string, timeoutMs = 3000, port: number = PORT): Promise<boolean> {
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
-    const res = await fetch(`http://${ip}:${PORT}/api/v1`, { method: "GET", mode: "cors", signal: ctrl.signal });
+    const res = await fetch(`http://${ip}:${port}/api/v1`, { method: "GET", mode: "cors", signal: ctrl.signal });
     return res.ok || res.status > 0;
   } catch {
     return false;
@@ -58,11 +58,11 @@ export async function ping(ip: string, timeoutMs = 3000): Promise<boolean> {
   }
 }
 
-export async function fetchPreviewBlob(ip: string, timeoutMs = 6000): Promise<Blob | null> {
+export async function fetchPreviewBlob(ip: string, timeoutMs = 6000, port: number = PORT): Promise<Blob | null> {
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
-    const res = await fetch(previewUrl(ip), { method: "GET", mode: "cors", signal: ctrl.signal });
+    const res = await fetch(previewUrl(ip, port), { method: "GET", mode: "cors", signal: ctrl.signal });
     if (!res.ok) return null;
     return await res.blob();
   } catch {
