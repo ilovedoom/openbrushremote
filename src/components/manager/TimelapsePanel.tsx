@@ -6,12 +6,22 @@ import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { fetchToU8 } from "@/lib/ffmpegLoader";
 import { useApp } from "@/state/AppContext";
 import { fetchPreviewBlob } from "@/lib/openbrush";
+import { FBtn, type FBtnToast } from "@/components/ui/FBtn";
 
 type Frame = { headsetId: string; headsetName: string; blob: Blob; filename: string };
 
+// Tiny 1x1 transparent PNG for demo capture fallback
+const DEMO_PNG_B64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
+async function demoBlob(): Promise<Blob> {
+  const bin = atob(DEMO_PNG_B64);
+  const arr = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+  return new Blob([arr], { type: "image/png" });
+}
+
 export function TimelapsePanel() {
   const { t } = useTranslation();
-  const { headsets, selectedIds } = useApp();
+  const { effectiveHeadsets, effectiveSelectedIds } = useApp();
 
   const [assigned, setAssigned] = useState<string[]>([]); // headset ids; empty = all selected
   const [min, setMin] = useState(5);
@@ -28,7 +38,7 @@ export function TimelapsePanel() {
 
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const assignedRef = useRef<string[]>([]);
-  assignedRef.current = assigned.length ? assigned : selectedIds;
+  assignedRef.current = assigned.length ? assigned : effectiveSelectedIds;
 
   // beep
   const beep = () => {
@@ -48,10 +58,10 @@ export function TimelapsePanel() {
 
   const captureNow = async () => {
     const ids = assignedRef.current;
-    const targets = headsets.filter((h) => ids.includes(h.id));
+    const targets = effectiveHeadsets.filter((h) => ids.includes(h.id));
     await Promise.all(
       targets.map(async (h) => {
-        const blob = await fetchPreviewBlob(h.ip);
+        const blob = h.demo ? await demoBlob() : await fetchPreviewBlob(h.ip, 6000, h.port);
         if (!blob) return;
         const ts = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
         const filename = `${h.name.replace(/[^\w-]/g, "_")}_${ts}.png`;
@@ -60,16 +70,17 @@ export function TimelapsePanel() {
     );
   };
 
-  const exportZip = async () => {
-    if (frames.length === 0) return;
+  const exportZip = async (): Promise<FBtnToast> => {
+    if (frames.length === 0) return { msg: "❌ Nessun frame catturato", type: "err" };
     const zip = new JSZip();
     frames.forEach((f) => zip.file(f.filename, f.blob));
     const out = await zip.generateAsync({ type: "blob" });
     downloadBlob(out, `openbrush_timelapse_${Date.now()}.zip`);
+    return { msg: `✅ ${frames.length} frame scaricati`, type: "ok" };
   };
 
-  const exportMp4 = async () => {
-    if (frames.length === 0) return;
+  const exportMp4 = async (): Promise<FBtnToast> => {
+    if (frames.length === 0) return { msg: "❌ Nessun frame catturato", type: "err" };
     setEncodeProgress(0);
     try {
       const ff = new FFmpeg();
@@ -95,9 +106,10 @@ export function TimelapsePanel() {
       const data = (await ff.readFile("out.mp4")) as Uint8Array;
       const copy = new Uint8Array(data as Uint8Array);
       downloadBlob(new Blob([copy], { type: "video/mp4" }), `openbrush_timelapse_${Date.now()}.mp4`);
+      return { msg: "🎬 MP4 pronto", type: "ok" };
     } catch (err) {
       console.error(err);
-      toast.error("MP4 export failed");
+      return { msg: "❌ MP4 export failed", type: "err" };
     } finally {
       setEncodeProgress(null);
     }
@@ -117,7 +129,7 @@ export function TimelapsePanel() {
         if (next >= totalSec) {
           // session ended
           const ids = assignedRef.current;
-          const names = headsets.filter((h) => ids.includes(h.id)).map((h) => h.name).join(", ") || "—";
+          const names = effectiveHeadsets.filter((h) => ids.includes(h.id)).map((h) => h.name).join(", ") || "—";
           toast.success(t("manager.timelapse.ended", { name: names }));
           beep();
           setRunning(false);
@@ -132,7 +144,7 @@ export function TimelapsePanel() {
 
   const start = async () => {
     if (totalSec <= 0) return;
-    if ((assigned.length ? assigned : selectedIds).length === 0) {
+    if ((assigned.length ? assigned : effectiveSelectedIds).length === 0) {
       toast.error(t("manager.preview.none"));
       return;
     }
@@ -161,7 +173,7 @@ export function TimelapsePanel() {
           >
             {t("manager.timelapse.allSelected")}
           </button>
-          {headsets.map((h) => {
+          {effectiveHeadsets.map((h) => {
             const on = assigned.includes(h.id);
             return (
               <button
@@ -212,10 +224,10 @@ export function TimelapsePanel() {
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <button onClick={exportZip} disabled={frames.length === 0} className="btn-base btn-secondary">{t("manager.timelapse.zip")}</button>
-        <button onClick={exportMp4} disabled={frames.length === 0 || encodeProgress !== null} className="btn-base btn-secondary">
+        <FBtn className="btn-base btn-secondary" disabled={frames.length === 0} onClickAsync={exportZip}>{t("manager.timelapse.zip")}</FBtn>
+        <FBtn className="btn-base btn-secondary" disabled={frames.length === 0 || encodeProgress !== null} onClickAsync={exportMp4}>
           {encodeProgress !== null ? t("manager.timelapse.encoding", { p: encodeProgress }) : t("manager.timelapse.mp4")}
-        </button>
+        </FBtn>
       </div>
       {encodeProgress !== null && (
         <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-secondary">

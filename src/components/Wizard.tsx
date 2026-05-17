@@ -4,6 +4,8 @@ import { toast } from "sonner";
 import { useApp } from "@/state/AppContext";
 import { LANGS } from "@/i18n";
 import { buildMultiplayerJoin, ping, sendCommand } from "@/lib/openbrush";
+import { useNetworkScanner } from "@/lib/useNetworkScanner";
+import { FBtn, type FBtnToast } from "@/components/ui/FBtn";
 
 const TOTAL = 6;
 
@@ -55,28 +57,45 @@ export function Wizard() {
     toast.success(t("wizard.step3.scanDone", { n: found }));
   };
 
-  const pingOne = async (id: string, ip: string) => {
+  const pingOne = async (id: string, ip: string, port?: number) => {
     updateHeadset(id, { online: null });
-    const ok = await ping(ip);
+    const ok = await ping(ip, 3000, port);
     updateHeadset(id, { online: ok });
   };
-  const pingAll = async () => {
-    await Promise.all(headsets.map((h) => pingOne(h.id, h.ip)));
+  const pingAll = async (): Promise<FBtnToast> => {
+    const results = await Promise.all(
+      headsets.map(async (h) => {
+        updateHeadset(h.id, { online: null });
+        const ok = await ping(h.ip, 3000, h.port);
+        updateHeadset(h.id, { online: ok });
+        return ok;
+      }),
+    );
+    const okCount = results.filter(Boolean).length;
+    if (okCount === results.length) return { msg: "✅ Tutti connessi", type: "ok" };
+    if (okCount === 0) return { msg: "❌ Nessuno raggiungibile", type: "err" };
+    return { msg: `⚠️ ${okCount}/${results.length} ok`, type: "warn" };
   };
 
-  const joinMp = async () => {
-    if (headsets.length === 0) return;
-    await Promise.all(
+  const joinMp = async (): Promise<FBtnToast> => {
+    if (headsets.length === 0) return { msg: "❌ Nessun visore", type: "err" };
+    if (!mp.roomName.trim()) return { msg: "❌ Nome stanza mancante", type: "err" };
+    const results = await Promise.all(
       headsets.map(async (h) => {
         const cmd = buildMultiplayerJoin(mp, h.id);
-        const ok = await sendCommand(h.ip, cmd);
-        if (mp.beginner) await sendCommand(h.ip, `sketch.beginner=true`);
-        if (ok) toast.success(t("toast.joined") + " — " + h.name);
-        else toast.error(t("toast.failed", { name: h.name }));
+        const ok = await sendCommand(h.ip, cmd, undefined, 4000, h.port);
+        if (mp.beginner) await sendCommand(h.ip, `sketch.beginner=true`, undefined, 4000, h.port);
+        return ok;
       }),
     );
     setInRoom(true);
+    const okCount = results.filter(Boolean).length;
+    if (okCount === results.length) return { msg: `✅ In stanza: ${mp.roomName}`, type: "ok" };
+    return { msg: `⚠️ ${okCount}/${results.length} ok`, type: "warn" };
   };
+
+  // Auto-scanner active only on step 3
+  const { found, scanning: autoScanning, lastScan } = useNetworkScanner(step === 3);
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-6">
@@ -174,6 +193,50 @@ export function Wizard() {
         {step === 3 && (
           <section>
             <h2 className="mb-6 text-2xl">{t("wizard.step3.title")}</h2>
+
+            <div className="scan-bar">
+              <span className="scan-dot" />
+              <span>{autoScanning ? "Ricerca in corso..." : "🔄 Ricerca automatica attiva"}</span>
+              {lastScan && (
+                <span style={{ marginLeft: "auto", fontSize: 10, opacity: 0.7 }}>
+                  {lastScan.toLocaleTimeString()}
+                </span>
+              )}
+            </div>
+            <div className="mb-1 text-[10px] text-muted-foreground">
+              Porte: 40074, 40075, 40076, 40080, 40000, 7777
+            </div>
+            <div className="mb-4 text-[10px] text-muted-foreground">
+              Subnet: 192.168.0/1/2, 10.0.0/1, 172.16.0
+            </div>
+
+            {found.length > 0 && (
+              <div className="mb-4">
+                <p className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">Trovati automaticamente</p>
+                <ul className="space-y-2">
+                  {found.map((f) => {
+                    const already = headsets.some((h) => h.ip === f.ip && (h.port ?? 40074) === f.port);
+                    return (
+                      <li key={`${f.ip}:${f.port}`} className="found-card flex items-center justify-between rounded-md border border-border bg-secondary/40 px-3 py-2">
+                        <div>
+                          <p className="font-display text-sm">{f.name} <span className="text-xs text-[oklch(0.72_0.18_150)]">trovato</span></p>
+                          <p className="text-xs text-muted-foreground">{f.ip}:{f.port}</p>
+                        </div>
+                        <button
+                          onClick={() => addHeadset(f.name, f.ip, f.port)}
+                          disabled={already}
+                          className="btn-base btn-primary"
+                          style={{ minHeight: 36 }}
+                        >
+                          {already ? "✓ Aggiunto" : "+ Aggiungi"}
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
+
             <div className="mb-4 grid gap-3 sm:grid-cols-2">
               <div>
                 <label className="mb-1 block text-xs text-muted-foreground">{t("wizard.step3.nameLabel")}</label>
@@ -212,7 +275,7 @@ export function Wizard() {
                   <li key={h.id} className="flex items-center justify-between rounded-md border border-border bg-secondary/40 px-3 py-2">
                     <div>
                       <p className="font-display text-sm">{h.name}</p>
-                      <p className="text-xs text-muted-foreground">{h.ip}</p>
+                      <p className="text-xs text-muted-foreground">{h.ip}{h.port && h.port !== 40074 ? `:${h.port}` : ""}</p>
                     </div>
                     <button onClick={() => removeHeadset(h.id)} className="btn-base btn-danger" style={{ minHeight: 36 }}>
                       🗑
@@ -235,20 +298,20 @@ export function Wizard() {
           <section>
             <h2 className="mb-6 text-2xl">{t("wizard.step4.title")}</h2>
             <div className="mb-4 flex justify-end">
-              <button onClick={pingAll} className="btn-base btn-secondary">{t("common.retry")} ↻</button>
+              <FBtn className="btn-base btn-secondary" onClickAsync={pingAll}>{t("common.retry")} ↻</FBtn>
             </div>
             <ul className="mb-6 space-y-2">
               {headsets.map((h) => (
                 <li key={h.id} className={`flex items-center justify-between rounded-md border bg-secondary/40 px-3 py-3 ${h.online === true ? "glow-success" : h.online === false ? "glow-danger" : ""}`}>
                   <div>
                     <p className="font-display text-sm">{h.name}</p>
-                    <p className="text-xs text-muted-foreground">{h.ip}</p>
+                    <p className="text-xs text-muted-foreground">{h.ip}{h.port && h.port !== 40074 ? `:${h.port}` : ""}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-xs">
                       {h.online === null ? t("wizard.step4.pinging") : h.online ? `✅ ${t("common.connected")}` : `❌ ${t("common.unreachable")}`}
                     </span>
-                    <button onClick={() => pingOne(h.id, h.ip)} className="btn-base btn-secondary" style={{ minHeight: 36 }}>↻</button>
+                    <button onClick={() => pingOne(h.id, h.ip, h.port)} className="btn-base btn-secondary" style={{ minHeight: 36 }}>↻</button>
                   </div>
                 </li>
               ))}
@@ -308,7 +371,7 @@ export function Wizard() {
               <button onClick={() => setStep(4)} className="btn-base btn-ghost">← {t("common.back")}</button>
               <div className="flex gap-2">
                 <button onClick={() => setStep(6)} className="btn-base btn-secondary">{t("wizard.step5.skipStep")}</button>
-                <button onClick={async () => { await joinMp(); setStep(6); }} className="btn-base btn-primary">🔗 {t("wizard.step5.join")}</button>
+                <FBtn className="btn-base btn-primary" onClickAsync={async () => { const r = await joinMp(); setTimeout(() => setStep(6), 800); return r; }}>🔗 {t("wizard.step5.join")}</FBtn>
               </div>
             </div>
           </section>
