@@ -61,7 +61,7 @@ export function TimelapsePanel() {
     const targets = effectiveHeadsets.filter((h) => ids.includes(h.id));
     await Promise.all(
       targets.map(async (h) => {
-        const blob = await fetchPreviewBlob(h.ip);
+        const blob = h.demo ? await demoBlob() : await fetchPreviewBlob(h.ip, 6000, h.port);
         if (!blob) return;
         const ts = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
         const filename = `${h.name.replace(/[^\w-]/g, "_")}_${ts}.png`;
