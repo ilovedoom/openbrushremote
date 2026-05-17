@@ -4,21 +4,29 @@ export type Headset = {
   id: string;
   name: string;
   ip: string;
+  port?: number;
   online?: boolean | null; // null = unknown
+  demo?: boolean;
+  found?: boolean;
 };
 
-export function apiUrl(ip: string, command: string, value?: string | number | boolean) {
-  const base = `http://${ip}:${PORT}/api/v1`;
+export const DEMO_HEADSETS: Headset[] = [
+  { id: "demo-matteo", name: "Quest Matteo", ip: "192.168.1.42", port: 40074, online: true, demo: true },
+  { id: "demo-guest", name: "Quest Guest", ip: "192.168.1.55", port: 40074, online: true, demo: true },
+];
+
+export function apiUrl(ip: string, command: string, value?: string | number | boolean, port: number = PORT) {
+  const base = `http://${ip}:${port}/api/v1`;
   if (value === undefined) return `${base}?${command}`;
   return `${base}?${command}=${encodeURIComponent(String(value))}`;
 }
 
-export function previewUrl(ip: string) {
-  return `http://${ip}:${PORT}/cameraview?t=${Date.now()}`;
+export function previewUrl(ip: string, port: number = PORT) {
+  return `http://${ip}:${port}/cameraview?t=${Date.now()}`;
 }
 
-export async function sendCommand(ip: string, command: string, value?: string | number | boolean, timeoutMs = 4000): Promise<boolean> {
-  const url = apiUrl(ip, command, value);
+export async function sendCommand(ip: string, command: string, value?: string | number | boolean, timeoutMs = 4000, port: number = PORT): Promise<boolean> {
+  const url = apiUrl(ip, command, value, port);
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
