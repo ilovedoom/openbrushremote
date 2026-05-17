@@ -70,12 +70,13 @@ export function TimelapsePanel() {
     );
   };
 
-  const exportZip = async () => {
-    if (frames.length === 0) return;
+  const exportZip = async (): Promise<FBtnToast> => {
+    if (frames.length === 0) return { msg: "❌ Nessun frame catturato", type: "err" };
     const zip = new JSZip();
     frames.forEach((f) => zip.file(f.filename, f.blob));
     const out = await zip.generateAsync({ type: "blob" });
     downloadBlob(out, `openbrush_timelapse_${Date.now()}.zip`);
+    return { msg: `✅ ${frames.length} frame scaricati`, type: "ok" };
   };
 
   const exportMp4 = async () => {
