@@ -224,10 +224,10 @@ export function TimelapsePanel() {
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <button onClick={exportZip} disabled={frames.length === 0} className="btn-base btn-secondary">{t("manager.timelapse.zip")}</button>
-        <button onClick={exportMp4} disabled={frames.length === 0 || encodeProgress !== null} className="btn-base btn-secondary">
+        <FBtn className="btn-base btn-secondary" disabled={frames.length === 0} onClickAsync={exportZip}>{t("manager.timelapse.zip")}</FBtn>
+        <FBtn className="btn-base btn-secondary" disabled={frames.length === 0 || encodeProgress !== null} onClickAsync={exportMp4}>
           {encodeProgress !== null ? t("manager.timelapse.encoding", { p: encodeProgress }) : t("manager.timelapse.mp4")}
-        </button>
+        </FBtn>
       </div>
       {encodeProgress !== null && (
         <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-secondary">
