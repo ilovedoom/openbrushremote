@@ -5,7 +5,7 @@ import { previewUrl } from "@/lib/openbrush";
 
 export function DeviceBar() {
   const { t } = useTranslation();
-  const { headsets, selectedIds, toggleSelected, selectAll, deselectAll } = useApp();
+  const { effectiveHeadsets, effectiveSelectedIds, toggleSelected, selectAll, deselectAll, isDemo } = useApp();
 
   return (
     <div>
@@ -17,11 +17,8 @@ export function DeviceBar() {
         </div>
       </div>
       <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-2">
-        {headsets.length === 0 && (
-          <p className="text-sm text-muted-foreground">No headsets. Go to Wizard to add some.</p>
-        )}
-        {headsets.map((h) => {
-          const selected = selectedIds.includes(h.id);
+        {effectiveHeadsets.map((h) => {
+          const selected = effectiveSelectedIds.includes(h.id);
           const onlineCls = h.online === true ? "glow-success" : h.online === false ? "glow-danger" : "";
           return (
             <button
@@ -30,10 +27,10 @@ export function DeviceBar() {
               className={`glass-card flex min-w-[180px] flex-col items-start gap-1 p-3 text-left transition-all ${onlineCls} ${selected ? "glow-violet" : ""}`}
             >
               <div className="flex w-full items-center justify-between">
-                <span className="font-display text-sm">{h.name}</span>
+                <span className="font-display text-sm">{h.name}{isDemo && " 🎭"}</span>
                 <span className={`inline-block h-2 w-2 rounded-full ${h.online === true ? "bg-[oklch(0.72_0.18_150)]" : h.online === false ? "bg-[oklch(0.62_0.24_25)]" : "bg-muted-foreground/50"}`} />
               </div>
-              <span className="text-xs text-muted-foreground">{h.ip}</span>
+              <span className="text-xs text-muted-foreground">{h.ip}{h.port && h.port !== 40074 ? `:${h.port}` : ""}</span>
               <span className="text-xs">{selected ? "● Selected" : "○ Tap to select"}</span>
             </button>
           );
@@ -45,8 +42,8 @@ export function DeviceBar() {
 
 export function PreviewPanel() {
   const { t } = useTranslation();
-  const { headsets, selectedIds } = useApp();
-  const targets = headsets.filter((h) => selectedIds.includes(h.id));
+  const { effectiveHeadsets, effectiveSelectedIds, isDemo } = useApp();
+  const targets = effectiveHeadsets.filter((h) => effectiveSelectedIds.includes(h.id));
   const [tick, setTick] = useState(0);
   useEffect(() => {
     const id = setInterval(() => setTick((x) => x + 1), 5000);
@@ -67,12 +64,18 @@ export function PreviewPanel() {
         <div className={`grid gap-3 ${targets.length > 1 ? "sm:grid-cols-2" : ""}`}>
           {targets.map((h) => (
             <div key={h.id} className="overflow-hidden rounded-md border border-border bg-input">
-              <img
-                src={previewUrl(h.ip) + "&_=" + tick}
-                alt={h.name}
-                className="aspect-video w-full bg-black object-contain"
-                onError={(e) => ((e.currentTarget.style.opacity = "0.2"))}
-              />
+              {isDemo || h.demo ? (
+                <div className="flex aspect-video w-full items-center justify-center bg-black text-5xl">
+                  👁️
+                </div>
+              ) : (
+                <img
+                  src={previewUrl(h.ip, h.port) + "&_=" + tick}
+                  alt={h.name}
+                  className="aspect-video w-full bg-black object-contain"
+                  onError={(e) => ((e.currentTarget.style.opacity = "0.2"))}
+                />
+              )}
               <p className="border-t border-border px-3 py-1.5 text-xs text-muted-foreground">{h.name}</p>
             </div>
           ))}
