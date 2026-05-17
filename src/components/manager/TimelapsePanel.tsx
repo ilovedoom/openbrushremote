@@ -79,8 +79,8 @@ export function TimelapsePanel() {
     return { msg: `✅ ${frames.length} frame scaricati`, type: "ok" };
   };
 
-  const exportMp4 = async () => {
-    if (frames.length === 0) return;
+  const exportMp4 = async (): Promise<FBtnToast> => {
+    if (frames.length === 0) return { msg: "❌ Nessun frame catturato", type: "err" };
     setEncodeProgress(0);
     try {
       const ff = new FFmpeg();
@@ -106,9 +106,10 @@ export function TimelapsePanel() {
       const data = (await ff.readFile("out.mp4")) as Uint8Array;
       const copy = new Uint8Array(data as Uint8Array);
       downloadBlob(new Blob([copy], { type: "video/mp4" }), `openbrush_timelapse_${Date.now()}.mp4`);
+      return { msg: "🎬 MP4 pronto", type: "ok" };
     } catch (err) {
       console.error(err);
-      toast.error("MP4 export failed");
+      return { msg: "❌ MP4 export failed", type: "err" };
     } finally {
       setEncodeProgress(null);
     }
