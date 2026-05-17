@@ -298,20 +298,20 @@ export function Wizard() {
           <section>
             <h2 className="mb-6 text-2xl">{t("wizard.step4.title")}</h2>
             <div className="mb-4 flex justify-end">
-              <button onClick={pingAll} className="btn-base btn-secondary">{t("common.retry")} ↻</button>
+              <FBtn className="btn-base btn-secondary" onClickAsync={pingAll}>{t("common.retry")} ↻</FBtn>
             </div>
             <ul className="mb-6 space-y-2">
               {headsets.map((h) => (
                 <li key={h.id} className={`flex items-center justify-between rounded-md border bg-secondary/40 px-3 py-3 ${h.online === true ? "glow-success" : h.online === false ? "glow-danger" : ""}`}>
                   <div>
                     <p className="font-display text-sm">{h.name}</p>
-                    <p className="text-xs text-muted-foreground">{h.ip}</p>
+                    <p className="text-xs text-muted-foreground">{h.ip}{h.port && h.port !== 40074 ? `:${h.port}` : ""}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-xs">
                       {h.online === null ? t("wizard.step4.pinging") : h.online ? `✅ ${t("common.connected")}` : `❌ ${t("common.unreachable")}`}
                     </span>
-                    <button onClick={() => pingOne(h.id, h.ip)} className="btn-base btn-secondary" style={{ minHeight: 36 }}>↻</button>
+                    <button onClick={() => pingOne(h.id, h.ip, h.port)} className="btn-base btn-secondary" style={{ minHeight: 36 }}>↻</button>
                   </div>
                 </li>
               ))}
