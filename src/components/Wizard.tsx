@@ -57,28 +57,45 @@ export function Wizard() {
     toast.success(t("wizard.step3.scanDone", { n: found }));
   };
 
-  const pingOne = async (id: string, ip: string) => {
+  const pingOne = async (id: string, ip: string, port?: number) => {
     updateHeadset(id, { online: null });
-    const ok = await ping(ip);
+    const ok = await ping(ip, 3000, port);
     updateHeadset(id, { online: ok });
   };
-  const pingAll = async () => {
-    await Promise.all(headsets.map((h) => pingOne(h.id, h.ip)));
+  const pingAll = async (): Promise<FBtnToast> => {
+    const results = await Promise.all(
+      headsets.map(async (h) => {
+        updateHeadset(h.id, { online: null });
+        const ok = await ping(h.ip, 3000, h.port);
+        updateHeadset(h.id, { online: ok });
+        return ok;
+      }),
+    );
+    const okCount = results.filter(Boolean).length;
+    if (okCount === results.length) return { msg: "✅ Tutti connessi", type: "ok" };
+    if (okCount === 0) return { msg: "❌ Nessuno raggiungibile", type: "err" };
+    return { msg: `⚠️ ${okCount}/${results.length} ok`, type: "warn" };
   };
 
-  const joinMp = async () => {
-    if (headsets.length === 0) return;
-    await Promise.all(
+  const joinMp = async (): Promise<FBtnToast> => {
+    if (headsets.length === 0) return { msg: "❌ Nessun visore", type: "err" };
+    if (!mp.roomName.trim()) return { msg: "❌ Nome stanza mancante", type: "err" };
+    const results = await Promise.all(
       headsets.map(async (h) => {
         const cmd = buildMultiplayerJoin(mp, h.id);
-        const ok = await sendCommand(h.ip, cmd);
-        if (mp.beginner) await sendCommand(h.ip, `sketch.beginner=true`);
-        if (ok) toast.success(t("toast.joined") + " — " + h.name);
-        else toast.error(t("toast.failed", { name: h.name }));
+        const ok = await sendCommand(h.ip, cmd, undefined, 4000, h.port);
+        if (mp.beginner) await sendCommand(h.ip, `sketch.beginner=true`, undefined, 4000, h.port);
+        return ok;
       }),
     );
     setInRoom(true);
+    const okCount = results.filter(Boolean).length;
+    if (okCount === results.length) return { msg: `✅ In stanza: ${mp.roomName}`, type: "ok" };
+    return { msg: `⚠️ ${okCount}/${results.length} ok`, type: "warn" };
   };
+
+  // Auto-scanner active only on step 3
+  const { found, scanning: autoScanning, lastScan } = useNetworkScanner(step === 3);
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-6">
