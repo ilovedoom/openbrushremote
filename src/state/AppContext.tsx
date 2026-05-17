@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { type Headset, type MultiplayerConfig, ping, sendCommand } from "@/lib/openbrush";
+import { DEMO_HEADSETS, type Headset, type MultiplayerConfig, ping, sendCommand } from "@/lib/openbrush";
 
 type Tab = "wizard" | "manager" | "wiki";
 
