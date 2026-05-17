@@ -193,6 +193,50 @@ export function Wizard() {
         {step === 3 && (
           <section>
             <h2 className="mb-6 text-2xl">{t("wizard.step3.title")}</h2>
+
+            <div className="scan-bar">
+              <span className="scan-dot" />
+              <span>{autoScanning ? "Ricerca in corso..." : "🔄 Ricerca automatica attiva"}</span>
+              {lastScan && (
+                <span style={{ marginLeft: "auto", fontSize: 10, opacity: 0.7 }}>
+                  {lastScan.toLocaleTimeString()}
+                </span>
+              )}
+            </div>
+            <div className="mb-1 text-[10px] text-muted-foreground">
+              Porte: 40074, 40075, 40076, 40080, 40000, 7777
+            </div>
+            <div className="mb-4 text-[10px] text-muted-foreground">
+              Subnet: 192.168.0/1/2, 10.0.0/1, 172.16.0
+            </div>
+
+            {found.length > 0 && (
+              <div className="mb-4">
+                <p className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">Trovati automaticamente</p>
+                <ul className="space-y-2">
+                  {found.map((f) => {
+                    const already = headsets.some((h) => h.ip === f.ip && (h.port ?? 40074) === f.port);
+                    return (
+                      <li key={`${f.ip}:${f.port}`} className="found-card flex items-center justify-between rounded-md border border-border bg-secondary/40 px-3 py-2">
+                        <div>
+                          <p className="font-display text-sm">{f.name} <span className="text-xs text-[oklch(0.72_0.18_150)]">trovato</span></p>
+                          <p className="text-xs text-muted-foreground">{f.ip}:{f.port}</p>
+                        </div>
+                        <button
+                          onClick={() => addHeadset(f.name, f.ip, f.port)}
+                          disabled={already}
+                          className="btn-base btn-primary"
+                          style={{ minHeight: 36 }}
+                        >
+                          {already ? "✓ Aggiunto" : "+ Aggiungi"}
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
+
             <div className="mb-4 grid gap-3 sm:grid-cols-2">
               <div>
                 <label className="mb-1 block text-xs text-muted-foreground">{t("wizard.step3.nameLabel")}</label>
@@ -231,7 +275,7 @@ export function Wizard() {
                   <li key={h.id} className="flex items-center justify-between rounded-md border border-border bg-secondary/40 px-3 py-2">
                     <div>
                       <p className="font-display text-sm">{h.name}</p>
-                      <p className="text-xs text-muted-foreground">{h.ip}</p>
+                      <p className="text-xs text-muted-foreground">{h.ip}{h.port && h.port !== 40074 ? `:${h.port}` : ""}</p>
                     </div>
                     <button onClick={() => removeHeadset(h.id)} className="btn-base btn-danger" style={{ minHeight: 36 }}>
                       🗑
