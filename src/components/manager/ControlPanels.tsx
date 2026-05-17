@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { toast } from "sonner";
 import { useApp } from "@/state/AppContext";
-import { BRUSHES, ENVIRONMENTS, buildMultiplayerJoin, sendCommand } from "@/lib/openbrush";
+import { BRUSHES, ENVIRONMENTS, buildMultiplayerJoin } from "@/lib/openbrush";
+import { FBtn, type FBtnToast } from "@/components/ui/FBtn";
 
 export function BrushPanel() {
   const { t } = useTranslation();
   const { sendToSelected } = useApp();
   const [q, setQ] = useState("");
+  const [active, setActive] = useState<string | null>(null);
   const list = BRUSHES.filter((b) => b.toLowerCase().includes(q.toLowerCase()));
   return (
     <section className="glass-card p-4">
@@ -17,8 +18,8 @@ export function BrushPanel() {
         {list.map((b) => (
           <button
             key={b}
-            onClick={async () => { await sendToSelected("brush.type", b, t("toast.brushChanged") + " (" + b + ")"); }}
-            className="btn-base btn-secondary"
+            onClick={() => { setActive(b); sendToSelected("brush.type", b, undefined, { silent: true }); }}
+            className={`btn-base ${active === b ? "btn-primary" : "btn-secondary"}`}
             style={{ minHeight: 44, padding: "0 0.75rem", fontSize: "0.8rem" }}
           >
             {b}
@@ -37,8 +38,7 @@ export function ColorPanel() {
   const apply = async (h: string) => {
     setHex(h);
     pushRecentColor(h);
-    // Send raw hex starting with #; sendToSelected URL-encodes the value.
-    await sendToSelected("brush.color", h, t("toast.colorChanged"));
+    await sendToSelected("brush.color", h, undefined, { silent: true });
   };
 
   return (
@@ -75,27 +75,38 @@ export function ColorPanel() {
 
 export function ScenePanel() {
   const { t } = useTranslation();
-  const { sendToSelected, sendToHeadsets, selectedIds, headsets, favorites, addFavorite, removeFavorite } = useApp();
+  const { sendToSelected, sendToHeadsets, effectiveSelectedIds, favorites, addFavorite, removeFavorite } = useApp();
   const [loadName, setLoadName] = useState("");
   const [confirmNew, setConfirmNew] = useState(false);
 
-  const saveScene = async () => {
-    const ids = selectedIds;
-    if (ids.length === 0) { toast.error(t("manager.preview.none")); return; }
-    await sendToHeadsets(ids, (h) => {
+  const saveScene = async (): Promise<FBtnToast> => {
+    const ids = effectiveSelectedIds;
+    if (ids.length === 0) return { msg: "❌ Nessun visore selezionato", type: "err" };
+    const res = await sendToHeadsets(ids, (h) => {
       const ts = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
       return `sketch.save=${encodeURIComponent(h.name.replace(/[^\w-]/g, "_") + "_" + ts)}`;
-    }, t("toast.saved"));
+    }, undefined, { silent: true });
+    if (res.fail === 0) return { msg: `✅ ${t("toast.saved")}`, type: "ok" };
+    return { msg: `⚠️ ${res.ok}/${res.ok + res.fail} ok`, type: "warn" };
+  };
+
+  const loadFile = async (): Promise<FBtnToast> => {
+    const name = loadName.trim();
+    if (!name) return { msg: "❌ Inserisci nome file", type: "err" };
+    const res = await sendToSelected("sketch.load", name, undefined, { silent: true });
+    addFavorite(name);
+    if (res.fail === 0) return { msg: `✅ ${t("toast.loaded")}`, type: "ok" };
+    return { msg: "❌ Caricamento fallito", type: "err" };
   };
 
   return (
     <section className="glass-card p-4">
       <h3 className="mb-3 font-display text-base">{t("manager.scene.title")}</h3>
       <div className="flex flex-wrap gap-2">
-        <button onClick={saveScene} className="btn-base btn-primary">{t("manager.scene.save")}</button>
+        <FBtn className="btn-base btn-primary" onClickAsync={saveScene}>{t("manager.scene.save")}</FBtn>
         <button onClick={() => setConfirmNew(true)} className="btn-base btn-danger">{t("manager.scene.new")}</button>
         <button
-          onClick={() => sendToSelected("sketch.load", "tutorial", t("toast.loaded"))}
+          onClick={() => sendToSelected("sketch.load", "tutorial", undefined, { silent: true })}
           className="btn-base btn-secondary"
           title={t("manager.scene.tutorialNote")}
         >
@@ -106,16 +117,7 @@ export function ScenePanel() {
 
       <div className="mt-4 flex flex-col gap-2 sm:flex-row">
         <input className="input-base" placeholder={t("manager.scene.loadPh")} value={loadName} onChange={(e) => setLoadName(e.target.value)} />
-        <button
-          onClick={async () => {
-            if (!loadName.trim()) return;
-            await sendToSelected("sketch.load", loadName.trim(), t("toast.loaded"));
-            addFavorite(loadName.trim());
-          }}
-          className="btn-base btn-primary"
-        >
-          {t("manager.scene.load")}
-        </button>
+        <FBtn className="btn-base btn-primary" onClickAsync={loadFile}>{t("manager.scene.load")}</FBtn>
       </div>
 
       {favorites.length > 0 && (
@@ -125,7 +127,7 @@ export function ScenePanel() {
             {favorites.map((f) => (
               <div key={f} className="flex items-center gap-1 rounded-md border border-border bg-secondary/50 p-1">
                 <button
-                  onClick={() => sendToSelected("sketch.load", f, t("toast.loaded"))}
+                  onClick={() => sendToSelected("sketch.load", f, undefined, { silent: true })}
                   className="px-2 py-1 text-xs"
                 >
                   {f}
@@ -146,7 +148,7 @@ export function ScenePanel() {
               <button
                 onClick={async () => {
                   setConfirmNew(false);
-                  await sendToSelected("sketch.new", undefined, t("toast.newScene"));
+                  await sendToSelected("sketch.new", undefined, undefined, { silent: true });
                 }}
                 className="btn-base btn-danger"
               >
@@ -163,6 +165,7 @@ export function ScenePanel() {
 export function EnvPanel() {
   const { t } = useTranslation();
   const { sendToSelected } = useApp();
+  const [active, setActive] = useState<string | null>(null);
   return (
     <section className="glass-card p-4">
       <h3 className="mb-3 font-display text-base">{t("manager.env.title")}</h3>
@@ -170,8 +173,8 @@ export function EnvPanel() {
         {ENVIRONMENTS.map((e) => (
           <button
             key={e}
-            onClick={() => sendToSelected("environment.set", e, t("toast.envChanged") + " (" + e + ")")}
-            className="btn-base btn-secondary"
+            onClick={() => { setActive(e); sendToSelected("environment.set", e, undefined, { silent: true }); }}
+            className={`btn-base ${active === e ? "btn-primary" : "btn-secondary"}`}
             style={{ minHeight: 44 }}
           >
             {e}
@@ -184,17 +187,23 @@ export function EnvPanel() {
 
 export function MultiplayerPanel() {
   const { t } = useTranslation();
-  const { mp, setMp, inRoom, setInRoom, headsets, selectedIds, sendToHeadsets, sendToSelected } = useApp();
+  const { mp, setMp, inRoom, setInRoom, effectiveHeadsets, effectiveSelectedIds, sendToHeadsets, sendToSelected } = useApp();
 
-  const join = async () => {
-    if (selectedIds.length === 0) { toast.error(t("manager.preview.none")); return; }
-    await sendToHeadsets(selectedIds, (h) => buildMultiplayerJoin(mp, h.id), t("toast.joined"));
-    if (mp.beginner) await sendToSelected("sketch.beginner", true);
-    setInRoom(true);
+  const join = async (): Promise<FBtnToast> => {
+    if (effectiveSelectedIds.length === 0) return { msg: "❌ Nessun visore selezionato", type: "err" };
+    if (!mp.roomName.trim()) return { msg: "❌ Nome stanza mancante", type: "err" };
+    const res = await sendToHeadsets(effectiveSelectedIds, (h) => buildMultiplayerJoin(mp, h.id), undefined, { silent: true });
+    if (mp.beginner) await sendToSelected("sketch.beginner", true, undefined, { silent: true });
+    if (res.fail === 0) {
+      setInRoom(true);
+      return { msg: `✅ In stanza: ${mp.roomName}`, type: "ok" };
+    }
+    return { msg: "❌ Errore connessione", type: "err" };
   };
-  const leave = async () => {
-    await sendToHeadsets(selectedIds, () => "multiplayer.leave", t("toast.left"));
+  const leave = async (): Promise<FBtnToast> => {
+    await sendToHeadsets(effectiveSelectedIds, () => "multiplayer.leave", undefined, { silent: true });
     setInRoom(false);
+    return { msg: "🚪 Uscito dalla stanza", type: "ok" };
   };
 
   return (
@@ -226,7 +235,7 @@ export function MultiplayerPanel() {
 
       {mp.perHeadsetNick && (
         <div className="mt-3 space-y-2">
-          {headsets.map((h) => (
+          {effectiveHeadsets.map((h) => (
             <div key={h.id} className="flex items-center gap-2">
               <span className="w-32 truncate text-xs text-muted-foreground">{h.name}</span>
               <input
@@ -241,8 +250,8 @@ export function MultiplayerPanel() {
       )}
 
       <div className="mt-4 flex flex-wrap gap-2">
-        <button onClick={join} className="btn-base btn-primary">{t("manager.mp.join")}</button>
-        <button onClick={leave} className="btn-base btn-danger">{t("manager.mp.leave")}</button>
+        <FBtn className="btn-base btn-primary" onClickAsync={join}>{t("manager.mp.join")}</FBtn>
+        <FBtn className="btn-base btn-danger" onClickAsync={leave}>{t("manager.mp.leave")}</FBtn>
       </div>
     </section>
   );
