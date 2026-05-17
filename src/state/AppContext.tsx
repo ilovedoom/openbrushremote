@@ -11,10 +11,14 @@ type AppState = {
   wizardCompleted: boolean;
   setWizardCompleted: (b: boolean) => void;
   headsets: Headset[];
-  addHeadset: (name: string, ip: string) => void;
+  /** Demo headsets shown when none configured. */
+  effectiveHeadsets: Headset[];
+  isDemo: boolean;
+  addHeadset: (name: string, ip: string, port?: number) => void;
   removeHeadset: (id: string) => void;
   updateHeadset: (id: string, patch: Partial<Headset>) => void;
   selectedIds: string[];
+  effectiveSelectedIds: string[];
   toggleSelected: (id: string) => void;
   selectAll: () => void;
   deselectAll: () => void;
@@ -27,9 +31,9 @@ type AppState = {
   favorites: string[];
   addFavorite: (name: string) => void;
   removeFavorite: (name: string) => void;
-  /** send command to selected headsets, with toast feedback */
-  sendToSelected: (command: string, value?: string | number | boolean, label?: string) => Promise<void>;
-  sendToHeadsets: (ids: string[], buildCmd: (h: Headset) => string, label?: string) => Promise<void>;
+  /** send command to selected headsets, with toast feedback (suppressed when silent). */
+  sendToSelected: (command: string, value?: string | number | boolean, label?: string, opts?: { silent?: boolean }) => Promise<{ ok: number; fail: number }>;
+  sendToHeadsets: (ids: string[], buildCmd: (h: Headset) => string, label?: string, opts?: { silent?: boolean }) => Promise<{ ok: number; fail: number }>;
 };
 
 const Ctx = createContext<AppState | null>(null);
