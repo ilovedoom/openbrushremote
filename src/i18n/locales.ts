@@ -135,11 +135,21 @@ const en = {
   },
   wiki: {
     title: "Wiki & FAQ",
+    sec0: "⬇️ Download & Install",
     sec1: "How the API works",
     sec2: "Use case guides",
     sec3: "Troubleshooting",
     sec4: "External Links",
     sec5: "Credits",
+    download: {
+      intro: "OB Remote runs entirely in your browser as a local file. No installation, no server, no account needed.",
+      step1: "Download the ZIP from the GitHub Releases page",
+      step2: "Unzip the archive",
+      step3: "Transfer the file to your iPhone or iPad (AirDrop is the fastest option)",
+      step4: "Open the file in Safari",
+      step5: "⚠️ Do NOT open it from Chrome or from a web server — Safari + file:// is required for the Quest API to work",
+      link: "GitHub Releases ↗",
+    },
     api: {
       l1: "Open Brush runs an HTTP server on port 40074.",
       l2: "Commands are simple GET requests.",
@@ -256,8 +266,18 @@ const it: typeof en = {
   },
   wiki: {
     title: "Wiki & FAQ",
+    sec0: "⬇️ Download & Installazione",
     sec1: "Come funziona l'API", sec2: "Guide d'uso", sec3: "Risoluzione problemi",
     sec4: "Link esterni", sec5: "Crediti",
+    download: {
+      intro: "OB Remote funziona interamente nel tuo browser come file locale. Nessuna installazione, nessun server, nessun account.",
+      step1: "Scarica lo ZIP dalla pagina GitHub Releases",
+      step2: "Estrai l'archivio",
+      step3: "Trasferisci il file su iPhone o iPad (AirDrop è il modo più veloce)",
+      step4: "Apri il file in Safari",
+      step5: "⚠️ NON aprirlo da Chrome o da un server web — è richiesto Safari + file:// per far funzionare l'API del Quest",
+      link: "GitHub Releases ↗",
+    },
     api: {
       l1: "Open Brush avvia un server HTTP sulla porta 40074.",
       l2: "I comandi sono semplici richieste GET.",
