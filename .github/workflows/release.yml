@@ -1,0 +1,44 @@
+name: Build & Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Build
+        run: bun run build
+
+      - name: Zip output
+        run: zip -r ob-remote-${{ github.ref_name }}.zip dist
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ob-remote-${{ github.ref_name }}.zip
+          body: |
+            ## OB Remote ${{ github.ref_name }}
+
+            ### How to use
+            1. Download `ob-remote-${{ github.ref_name }}.zip`
+            2. Unzip and serve the `dist/` folder on your local network
+            3. Open it in **Safari** on your iPhone or iPad
+            4. Make sure your Quest and device are on the same WiFi network
+
+            ### Requirements
+            - Meta Quest with Open Brush installed
+            - Open Brush config edited to enable remote API
+              ([guide](https://docs.openbrush.app/user-guide/open-brush-api))
+            - Same local WiFi network
