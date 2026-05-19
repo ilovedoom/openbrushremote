@@ -1,54 +1,62 @@
 # OB Remote — Open Brush Remote Controller
 
-A mobile-first web app to remotely control one or more **Meta Quest** headsets running [Open Brush](https://openbrush.app) via its local HTTP API.  
-Built for artists, educators, and facilitators who need to manage VR painting sessions from a phone or tablet — no server, no backend, no installation.
+> A mobile-first web app to remotely control one or more **Meta Quest** headsets
+> running [Open Brush](https://openbrush.app) via its local HTTP API.
+> Built for artists, educators, and facilitators — no server, no backend, no installation.
+
+![License](https://img.shields.io/badge/license-MIT-purple)
+![React](https://img.shields.io/badge/built%20with-React-61dafb)
+![Platform](https://img.shields.io/badge/platform-Safari%20%2F%20iOS-lightgrey)
+
+---
+
+> 📱 *Screenshots and demo coming soon*
 
 ---
 
 ## ✨ Features
 
 ### 🧙 Setup Wizard
-Step-by-step onboarding for first-time users:
-- Language selection (8 languages)
-- Config guide for enabling the Open Brush remote API on Quest
-- Headset discovery: **auto-scan** your local network every 5 seconds across multiple subnets and ports
-- Connection test per headset
+- 8-language selector
+- Step-by-step Quest config guide (file path, JSON snippet, checklist)
+- Auto network scan every 5s across 6 subnets and 6 ports
+- Per-headset connection test
 - Optional multiplayer room setup
 
 ### 🎛️ Session Manager
-Full control panel for one or more headsets simultaneously:
-- **Device bar** — add multiple Quest headsets, ping status every 10s, single or multi-select
-- **Live preview** — fetches `/cameraview` from selected headsets every 5s
-- **Brush selector** — 30+ Open Brush brushes, tap to apply
-- **Color picker** — hex input + visual picker + recent colors
-- **Scene control** — save, new scene, load file, load tutorial
-- **Environment** — 10 environments (Tundra, Space, Jungle, and more)
-- **Multiplayer panel** — join/leave rooms, set nickname, beginner mode, private/view-only room
-- **Timelapse & Timer** — per-headset timer, captures frames every 30s from `/cameraview`, exports ZIP (PNG frames) and MP4 video
+- Multi-headset device bar (ping every 10s, select one or all)
+- Live camera preview from `/cameraview` (refresh every 5s)
+- 30+ brush selector
+- Color picker with hex input and recent colors
+- Scene control: save, new, load file, load tutorial
+- 10 environments
+- Multiplayer panel: join/leave, nickname, beginner mode, private/view-only
+- Per-headset timer with timelapse capture (frame every 30s)
+- Export: ZIP (PNG frames) + MP4 video (6 fps default, 12 fps for long sessions)
 
 ### 📖 Wiki & FAQ
-- How the API works with code examples
-- Per-feature usage guides
-- Troubleshooting (7 common issues)
-- Links to official docs, Discord, GitHub
-- Credits
+- API usage guide with code examples
+- Per-feature usage reference
+- Troubleshooting (7 common issues with solutions)
+- Links to official Open Brush docs, Discord, GitHub
+- Credits section
 
-### 🌐 Internationalization
-Full UI in 8 languages: 🇮🇹 Italian · 🇬🇧 English · 🇫🇷 French · 🇩🇪 German · 🇪🇸 Spanish · 🇯🇵 Japanese · 🇰🇷 Korean · 🇨🇳 Simplified Chinese
+### 🌐 8 Languages
+🇮🇹 Italian · 🇬🇧 English · 🇫🇷 French · 🇩🇪 German · 🇪🇸 Spanish · 🇯🇵 Japanese · 🇰🇷 Korean · 🇨🇳 Simplified Chinese
 
 ---
 
-## 🛠️ How It Works
+## 🔌 How It Works
 
-Open Brush runs a built-in HTTP server on port `40074`. OB Remote sends commands as simple GET requests to that server over your local WiFi network.
+Open Brush runs a built-in HTTP server on port `40074`. OB Remote sends commands as plain GET requests over your local WiFi.
 
 ```
-iPad / iPhone (Safari, file://)
+iPad / iPhone (Safari, opened as file://)
         │
-        └─ WiFi (same network)
+        └── WiFi (same local network)
                 │
-                ├─ http://192.168.1.42:40074/api/v1?brush.type=Ink   → Quest 1
-                └─ http://192.168.1.55:40074/api/v1?brush.type=Ink   → Quest 2
+                ├── http://192.168.1.42:40074/api/v1?brush.type=Ink  →  Quest 1
+                └── http://192.168.1.55:40074/api/v1?brush.type=Ink  →  Quest 2
 ```
 
 No cloud. No login. No external services.
@@ -57,16 +65,16 @@ No cloud. No login. No external services.
 
 ## ⚙️ Prerequisites
 
-### 1. Enable the Open Brush Remote API on your Quest
+**1. Enable the Open Brush Remote API on Quest**
 
-The config file needs to be edited once via [SideQuest](https://sidequestvr.com) or `adb`:
+File location on Quest:
 
-**File location on Quest:**
 ```
 /sdcard/Open Brush/Open Brush.cfg
 ```
 
-**Add or merge this into the file:**
+Add or merge this JSON:
+
 ```json
 {
   "Flags": {
@@ -76,37 +84,59 @@ The config file needs to be edited once via [SideQuest](https://sidequestvr.com)
 }
 ```
 
-Restart Open Brush after saving.
+Edit via [SideQuest](https://sidequestvr.com) or `adb`. Restart Open Brush after saving.
+📖 Official guide: https://docs.openbrush.app/user-guide/open-brush-api
 
-📖 Official guide: [docs.openbrush.app/user-guide/open-brush-api](https://docs.openbrush.app/user-guide/open-brush-api)
+**2. Same WiFi network**
 
-### 2. Same WiFi network
+Quest and device must be on the same local WiFi.
 
-Both the Quest and the device running OB Remote must be on the **same local WiFi network**.
+**3. Open as local file in Safari**
 
-### 3. Open the app in Safari as a local file
-
-Because the Quest API runs on HTTP (not HTTPS), the app must be opened via `file://` in Safari — **not** served from an HTTPS host (Vercel, Netlify, etc.) which would trigger mixed content blocking.
+Must be opened via `file://` in Safari.
+Do NOT serve from HTTPS hosts (Vercel, Netlify, etc.) — mixed content policy blocks HTTP calls.
 
 ---
 
-## 🚀 Getting Started
+## ⬇️ Download & Install
 
-1. Download or clone this repository
-2. Transfer `ob-remote.html` (or the built app) to your iPhone or iPad (AirDrop, Files app, Google Drive)
-3. Open the file in **Safari**
-4. Complete the Wizard:
-   - Choose your language
-   - Confirm the Quest config is set up
-   - Add your headset IP(s) or let the auto-scan find them
-   - Test the connection
-5. Switch to **Session Manager** and start controlling
+1. Go to the [Releases page](../../releases) and download the latest `ob-remote-vX.X.X.zip`
+2. Unzip — you get a single file: `index.html`
+3. Transfer `index.html` to your iPhone or iPad
+   - AirDrop is the fastest option
+   - Alternatively: Files app, Google Drive, or USB
+4. Open the file in **Safari**
+5. Complete the Wizard and start controlling your headsets
+
+> ⚠️ Do NOT open from Chrome or from a web server.
+> Safari + `file://` is required for the Quest API to work correctly.
+
+---
+
+## 🚀 Getting Started (for developers)
+
+```bash
+# Clone the repo
+git clone https://github.com/[USERNAME]/ob-remote.git
+cd ob-remote
+
+# Install dependencies
+bun install
+
+# Development server
+bun run dev
+
+# Build standalone HTML (single file)
+bun run build
+# Output: dist/index.html — transfer this file to your device
+```
+
+> The build uses `vite-plugin-singlefile` to inline all JS and CSS into a single
+> `index.html`. No external assets or CDN calls at runtime.
 
 ---
 
 ## 📡 API Reference
-
-All commands follow this format:
 
 ```
 GET http://[QUEST-IP]:40074/api/v1?command=value
@@ -124,35 +154,53 @@ GET http://[QUEST-IP]:40074/api/v1?command=value
 | Multiplayer join | `multiplayer.join=nick,room,false,10,false,false` |
 | Live preview | `GET /cameraview` → PNG image |
 
-Full command list (when Quest is connected): `http://[QUEST-IP]:40074/help/commands`
+Full command list (live, when Quest is connected):
 
-📋 [API Command Reference](https://docs.openbrush.app/user-guide/open-brush-api/api-commands)
+```
+http://[QUEST-IP]:40074/help/commands
+```
+
+Links:
+- [API Docs](https://docs.openbrush.app/user-guide/open-brush-api)
+- [Command Reference](https://docs.openbrush.app/user-guide/open-brush-api/api-commands)
+- [Camera Preview API](https://docs.openbrush.app/user-guide/open-brush-api/retrieving-a-preview-image)
 
 ---
 
 ## 🎬 Timelapse
 
-OB Remote captures a frame from `/cameraview` every **30 seconds** while the timer is running.
+- Frame captured every 30s from `/cameraview` while timer is running
+- Timer assignable per headset or to all headsets
+- At session end (or manually): ZIP download + MP4 export
+- FPS: 6 fps default, 12 fps unlocked when > 60 frames captured (~30 min session)
+- PNG files named: `[headset-name]_[timestamp].png`
 
-At the end of the session (or manually):
-- **ZIP download** — all PNG frames named `[headset]_[timestamp].png`
-- **MP4 export** — encoded at **6 fps** (default) or **12 fps** (unlocked for sessions > 60 frames, equivalent to ~30 minutes)
-
-> Note: preview quality depends on the Quest's internal window resolution. Ideal for session documentation, not production output.
+> Preview quality depends on the Quest's internal window resolution.
+> Suitable for session documentation, not production output.
 
 ---
 
 ## 🌐 Network Scanner
 
-OB Remote automatically scans your local network for headsets when you open the Wizard's headset step.
+Auto-scan runs in Wizard Step 3.
 
-**Ports scanned:** `40074, 40075, 40076, 40080, 40000, 7777`
+Ports scanned:
 
-**Subnets scanned:** `192.168.0.x · 192.168.1.x · 192.168.2.x · 10.0.0.x · 10.0.1.x · 172.16.0.x`
+```
+40074, 40075, 40076, 40080, 40000, 7777
+```
 
-Scan runs every 5 seconds while the step is open. Devices found automatically are highlighted in green. You can also add headsets manually by name + IP.
+Subnets scanned:
 
-> Safari may restrict network scanning in some configurations. If auto-scan returns nothing, add the Quest IP manually (found under Quest Settings → WiFi → tap the network → IP address).
+```
+192.168.0.x · 192.168.1.x · 192.168.2.x
+10.0.0.x · 10.0.1.x · 172.16.0.x
+```
+
+- Runs every 5s while Step 3 is open
+- Devices found automatically are highlighted in green
+- Manual IP entry always available as fallback
+- To find Quest IP: Quest Settings → WiFi → tap network → IP address
 
 ---
 
@@ -160,15 +208,15 @@ Scan runs every 5 seconds while the step is open. Devices found automatically ar
 
 | Problem | Solution |
 |---------|----------|
-| Headset unreachable | Check same WiFi, Open Brush running, config file edited |
-| CORS error | `EnableApiCorsHeaders` must be `true` in config |
-| Safari blocks requests | Open as `file://`, not from HTTPS host |
-| Preview missing or slow | Normal — depends on Quest window. 5s refresh is intentional |
-| Scan finds nothing | Add IP manually from Quest WiFi settings |
-| Brush/env command fails | Verify exact names at `http://[IP]:40074/help/commands` |
-| Multiplayer join fails | All headsets must be on same Photon region. Room name and key must match exactly |
+| Headset unreachable | Check same WiFi, Open Brush running, config file edited correctly |
+| CORS error | `EnableApiCorsHeaders` must be `true` in config. Edit file and restart Open Brush |
+| Safari blocks requests | Open as `file://` locally. Do not use HTTPS-hosted version |
+| Preview missing or slow | Normal — depends on Quest window size. 5s refresh is intentional |
+| Auto-scan finds nothing | Add IP manually. Find it: Quest Settings → WiFi → tap network → IP address |
+| Brush / environment command fails | Check exact names at `http://[IP]:40074/help/commands` |
+| Multiplayer join fails | All headsets must be on the same Photon region. Room name and key must match exactly |
 
-💬 Need help? Join the [Open Brush Discord](https://discord.openbrush.app)
+> 💬 Need help? Join the [Open Brush Discord](https://discord.openbrush.app)
 
 ---
 
@@ -176,13 +224,17 @@ Scan runs every 5 seconds while the step is open. Devices found automatically ar
 
 | Layer | Choice |
 |-------|--------|
-| UI | React + Tailwind CSS |
+| Framework | React 18 + TypeScript |
+| Build tool | Vite + vite-plugin-singlefile |
+| Runtime | Bun |
+| Styling | Tailwind CSS |
 | Fonts | Space Mono + IBM Plex Sans |
 | ZIP export | JSZip (CDN) |
 | MP4 export | ffmpeg.wasm (CDN) |
 | i18n | i18next |
+| CI/CD | GitHub Actions |
 | Backend | None |
-| Storage | None (all state in memory) |
+| Storage | None (all state in React memory) |
 
 ---
 
@@ -190,37 +242,77 @@ Scan runs every 5 seconds while the step is open. Devices found automatically ar
 
 ```
 ob-remote/
-├── ob-remote.jsx       # Full single-file React app (source)
-├── ob-remote.html      # Built standalone HTML (for local use on device)
+├── .github/
+│   └── workflows/
+│       └── release.yml           # Build + ZIP + GitHub Release on tag push
+├── src/
+│   ├── main.tsx                  # Entry point + root shell, tab routing
+│   ├── components/
+│   │   ├── Wizard.tsx            # Multi-step onboarding wizard
+│   │   ├── Manager.tsx           # Session manager with all panels
+│   │   ├── Wiki.tsx              # Accordion docs, troubleshooting, credits
+│   │   ├── TopBar.tsx            # Tab bar + language switch
+│   │   ├── manager/
+│   │   │   ├── DevicesAndPreview.tsx
+│   │   │   ├── ControlPanels.tsx
+│   │   │   └── TimelapsePanel.tsx
+│   │   └── ui/
+│   │       └── FBtn.tsx          # Button with ripple + local toast feedback
+│   ├── lib/
+│   │   ├── openbrush.ts          # Quest HTTP API client
+│   │   ├── useNetworkScanner.ts  # Auto-scan hook
+│   │   └── ffmpegLoader.ts       # ffmpeg.wasm loader
+│   ├── state/
+│   │   └── AppContext.tsx        # Global app state (React memory only)
+│   ├── i18n/
+│   │   ├── index.ts
+│   │   └── locales.ts            # All 8 language strings
+│   └── styles.css
+├── index.html
 ├── README.md
-└── PATCH-v1.1.md       # Changelog and patch notes
+├── vite.config.ts                # vite-plugin-singlefile config
+├── package.json
+└── tsconfig.json
 ```
 
 ---
 
 ## ⚠️ Limitations
 
-- **No HTTPS support** — the Quest API runs on HTTP only; the app must be opened locally
-- **No file upload** — sketch files must already be on the Quest
-- **Camera snapshot** — the API provides live preview only; triggering a photo from the app is not supported by the current Open Brush API
-- **Preview resolution** — `/cameraview` quality varies and depends on the Quest's window size; not suitable for high-quality output
-- **Safari scan** — browser security may limit LAN scanning; manual IP entry is always available as fallback
+- **No HTTPS support** — Quest API is HTTP only; app must be opened as local file
+- **No file upload** — sketch files must already exist on the Quest
+- **Camera snapshot** — `/cameraview` provides live preview only; triggering a photo via API is not supported by Open Brush
+- **Preview resolution** — quality varies by Quest window size; not suitable for high-quality output
+- **Safari scan restriction** — browser security may limit LAN scanning; manual IP entry is always available
+
+---
+
+## 🤝 Contributing
+
+Pull requests are welcome.
+For major changes, please open an issue first to discuss what you would like to change.
+
+If you find a bug or have a feature request, open an issue or reach out on
+[Open Brush Discord](https://discord.openbrush.app).
 
 ---
 
 ## 👤 Credits
 
-**Created by**  
-[Matteo Sgherri](https://www.matteosgherri.com)  
-[@thepixelschips](https://instagram.com/thepixelschips) on Instagram & TikTok
+**Created by**
+Matteo Sgherri — [matteosgherri.com](https://www.matteosgherri.com)
+Instagram & TikTok: [@thepixelschips](https://instagram.com/thepixelschips)
 
-**In collaboration with**  
-[Holonexia APS](https://www.holonexia.it)  
-[@holonexia](https://instagram.com/holonexia) on Instagram · [LinkedIn](https://linkedin.com/company/holonexia)
+**In collaboration with**
+Holonexia APS — [holonexia.it](https://www.holonexia.it)
+Instagram: [@holonexia](https://instagram.com/holonexia)
+LinkedIn: [Holonexia](https://linkedin.com/company/holonexia)
 
-**Powered by**  
-[Open Brush](https://openbrush.app) — the open-source VR painting app  
-[docs.openbrush.app](https://docs.openbrush.app) · [Discord](https://discord.openbrush.app) · [GitHub](https://github.com/icosa-foundation/open-brush)
+**Powered by**
+[Open Brush](https://openbrush.app) — open-source VR painting app by Icosa Foundation
+[docs.openbrush.app](https://docs.openbrush.app) ·
+[Discord](https://discord.openbrush.app) ·
+[GitHub](https://github.com/icosa-foundation/open-brush)
 
 ---
 
@@ -230,4 +322,5 @@ MIT — free to use, modify, and distribute with attribution.
 
 ---
 
-*OB Remote is an independent project and is not affiliated with or endorsed by the Icosa Foundation or the Open Brush team.*
+*OB Remote is an independent project and is not affiliated with or endorsed
+by the Icosa Foundation or the Open Brush team.*
