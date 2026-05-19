@@ -30,6 +30,20 @@ export function Wiki() {
     <div className="mx-auto max-w-4xl space-y-3 px-4 py-6">
       <h1 className="mb-2 text-2xl">{t("wiki.title")}</h1>
 
+      <Section title={t("wiki.sec0")} defaultOpen>
+        <p className="mb-3 text-sm">{t("wiki.download.intro")}</p>
+        <ol className="list-decimal space-y-1 pl-5 text-sm">
+          <li>{t("wiki.download.step1")}</li>
+          <li>{t("wiki.download.step2")}</li>
+          <li>{t("wiki.download.step3")}</li>
+          <li>{t("wiki.download.step4")}</li>
+          <li>{t("wiki.download.step5")}</li>
+        </ol>
+        <div className="mt-4">
+          <Link href="https://github.com/">{t("wiki.download.link")}</Link>
+        </div>
+      </Section>
+
       <Section title={t("wiki.sec1")} defaultOpen>
         <ul className="list-disc space-y-1 pl-5">
           <li>{t("wiki.api.l1")}</li>
