@@ -21,6 +21,10 @@ export function Wizard() {
   const [c2, setC2] = useState(false);
   const [c3, setC3] = useState(false);
 
+  // Step 1 install banner state
+  const [warnDismissed, setWarnDismissed] = useState(false);
+  const [downloaded, setDownloaded] = useState(false);
+
   // Step 3 form
   const [hName, setHName] = useState("");
   const [hIp, setHIp] = useState("");
