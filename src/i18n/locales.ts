@@ -43,6 +43,21 @@ const en = {
   wizard: {
     progress: "Step {{current}} of {{total}}",
     step1: { title: "Choose your language" },
+    install: {
+      warnTitle: "Running on a web server",
+      warnBody: "This app is loaded over HTTPS. The Quest API runs on HTTP (port 40074) and will be blocked by your browser for mixed-content security. To control real headsets, use the local file version.",
+      download: "⬇️ Download ob-remote.zip",
+      continueDemo: "Continue anyway in demo mode",
+      howTitle: "How to install",
+      iosTitle: "iPhone / iPad (Safari)",
+      iosBody: "Unzip → AirDrop index.html to your device → Open in Safari. Safari only — Chrome on iOS does not support file://.",
+      androidTitle: "Android (Chrome)",
+      androidBody: "Unzip → open a file manager → navigate to Downloads → tap index.html → \"Open with Chrome\". Chrome on Android supports file:// and HTTP local calls.",
+      desktopTitle: "Mac / Windows / Linux",
+      desktopBody: "Open index.html directly in any browser.",
+      downloadedTitle: "✅ ob-remote.zip downloaded",
+      downloadedBody: "iPhone/iPad → AirDrop → open in Safari · Android → file manager → open with Chrome · Mac/Win → open index.html in any browser",
+    },
     step2: {
       title: "Prepare your Quest",
       intro: "Open Brush must be installed and running on Meta Quest. The config file must be edited once to enable remote API access.",
@@ -205,6 +220,21 @@ const it: typeof en = {
   wizard: {
     progress: "Passo {{current}} di {{total}}",
     step1: { title: "Scegli la lingua" },
+    install: {
+      warnTitle: "In esecuzione su un server web",
+      warnBody: "Questa app è caricata via HTTPS. L'API del Quest gira su HTTP (porta 40074) e sarà bloccata dal browser per sicurezza (mixed content). Per controllare visori reali, usa la versione file locale.",
+      download: "⬇️ Scarica ob-remote.zip",
+      continueDemo: "Continua comunque in modalità demo",
+      howTitle: "Come installare",
+      iosTitle: "iPhone / iPad (Safari)",
+      iosBody: "Estrai → AirDrop di index.html sul dispositivo → Apri in Safari. Solo Safari — Chrome su iOS non supporta file://.",
+      androidTitle: "Android (Chrome)",
+      androidBody: "Estrai → apri un file manager → vai in Download → tocca index.html → \"Apri con Chrome\". Chrome su Android supporta file:// e chiamate HTTP locali.",
+      desktopTitle: "Mac / Windows / Linux",
+      desktopBody: "Apri index.html direttamente in qualunque browser.",
+      downloadedTitle: "✅ ob-remote.zip scaricato",
+      downloadedBody: "iPhone/iPad → AirDrop → apri in Safari · Android → file manager → apri con Chrome · Mac/Win → apri index.html in qualunque browser",
+    },
     step2: {
       title: "Prepara il tuo Quest",
       intro: "Open Brush deve essere installato e in esecuzione sul Meta Quest. Il file di configurazione va modificato una volta per abilitare l'API remota.",

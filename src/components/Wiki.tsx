@@ -1,5 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
+import { FBtn } from "@/components/ui/FBtn";
+import { downloadLocalZip } from "@/utils/download";
 
 function Section({ title, children, defaultOpen = false }: { title: string; children: ReactNode; defaultOpen?: boolean }) {
   const [open, setOpen] = useState(defaultOpen);
@@ -32,15 +34,35 @@ export function Wiki() {
 
       <Section title={t("wiki.sec0")} defaultOpen>
         <p className="mb-3 text-sm">{t("wiki.download.intro")}</p>
-        <ol className="list-decimal space-y-1 pl-5 text-sm">
-          <li>{t("wiki.download.step1")}</li>
-          <li>{t("wiki.download.step2")}</li>
-          <li>{t("wiki.download.step3")}</li>
-          <li>{t("wiki.download.step4")}</li>
-          <li>{t("wiki.download.step5")}</li>
-        </ol>
-        <div className="mt-4">
+        <div className="mb-4 flex flex-wrap gap-2">
+          <FBtn
+            className="btn-base btn-primary"
+            onClickAsync={async () => {
+              try {
+                await downloadLocalZip();
+                return { msg: "✅ ob-remote.zip", type: "ok" };
+              } catch {
+                return { msg: "❌ Download error", type: "err" };
+              }
+            }}
+          >
+            {t("wizard.install.download")}
+          </FBtn>
           <Link href="https://github.com/">{t("wiki.download.link")}</Link>
+        </div>
+        <div className="space-y-3 text-sm">
+          <div className="rounded-md border border-border/60 bg-secondary/30 p-3">
+            <p className="mb-1 font-display">{t("wizard.install.iosTitle")}</p>
+            <p className="text-xs text-muted-foreground">{t("wizard.install.iosBody")}</p>
+          </div>
+          <div className="rounded-md border border-border/60 bg-secondary/30 p-3">
+            <p className="mb-1 font-display">{t("wizard.install.androidTitle")}</p>
+            <p className="text-xs text-muted-foreground">{t("wizard.install.androidBody")}</p>
+          </div>
+          <div className="rounded-md border border-border/60 bg-secondary/30 p-3">
+            <p className="mb-1 font-display">{t("wizard.install.desktopTitle")}</p>
+            <p className="text-xs text-muted-foreground">{t("wizard.install.desktopBody")}</p>
+          </div>
         </div>
       </Section>
 
