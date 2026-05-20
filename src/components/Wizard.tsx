@@ -135,6 +135,45 @@ export function Wizard() {
                 </button>
               ))}
             </div>
+
+            {!IS_LOCAL && !warnDismissed && (
+              <div className="mt-6 rounded-md border border-[oklch(0.78_0.18_75)] bg-[oklch(0.22_0.08_75)]/40 p-4">
+                <p className="mb-2 font-display text-sm">⚠️ {t("wizard.install.warnTitle")}</p>
+                <p className="mb-3 text-xs text-muted-foreground">{t("wizard.install.warnBody")}</p>
+                <div className="mb-4 flex flex-wrap gap-2">
+                  <FBtn
+                    className="btn-base btn-primary"
+                    onClickAsync={async () => {
+                      try {
+                        await downloadLocalZip();
+                        setDownloaded(true);
+                        return { msg: "✅ ZIP " + t("wizard.install.downloadedTitle"), type: "ok" };
+                      } catch {
+                        return { msg: "❌ Download error", type: "err" };
+                      }
+                    }}
+                  >
+                    {t("wizard.install.download")}
+                  </FBtn>
+                  <button onClick={() => setWarnDismissed(true)} className="btn-base btn-secondary">
+                    {t("wizard.install.continueDemo")}
+                  </button>
+                </div>
+                {downloaded && (
+                  <div className="mb-4 rounded-md border border-[oklch(0.72_0.18_150)] bg-[oklch(0.22_0.08_150)]/30 p-3">
+                    <p className="mb-1 font-display text-xs">{t("wizard.install.downloadedTitle")}</p>
+                    <p className="text-[11px] text-muted-foreground">{t("wizard.install.downloadedBody")}</p>
+                  </div>
+                )}
+                <div className="space-y-2 text-xs">
+                  <p className="font-display uppercase tracking-wider text-muted-foreground">{t("wizard.install.howTitle")}</p>
+                  <div><span className="font-display">{t("wizard.install.iosTitle")}</span> — <span className="text-muted-foreground">{t("wizard.install.iosBody")}</span></div>
+                  <div><span className="font-display">{t("wizard.install.androidTitle")}</span> — <span className="text-muted-foreground">{t("wizard.install.androidBody")}</span></div>
+                  <div><span className="font-display">{t("wizard.install.desktopTitle")}</span> — <span className="text-muted-foreground">{t("wizard.install.desktopBody")}</span></div>
+                </div>
+              </div>
+            )}
+
             <div className="mt-8 flex justify-end">
               <button onClick={() => setStep(2)} className="btn-base btn-primary">
                 {t("common.continue")} →
