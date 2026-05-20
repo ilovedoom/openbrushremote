@@ -1,0 +1,39 @@
+name: Fix lockfile
+
+on:
+  workflow_dispatch:
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Remove broken lockfile
+        run: rm -f bun.lock
+
+      - name: Write clean bunfig.toml
+        run: |
+          cat > bunfig.toml << 'EOF'
+          [install]
+          registry = "https://registry.npmjs.org"
+          EOF
+
+      - name: Reinstall against public npm
+        run: bun install
+
+      - name: Commit clean lockfile
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add bun.lock bunfig.toml
+          git diff --cached --quiet || git commit -m "fix: regenerate bun.lock against public npm registry"
+          git push
