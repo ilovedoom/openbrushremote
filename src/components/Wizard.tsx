@@ -6,8 +6,10 @@ import { LANGS } from "@/i18n";
 import { buildMultiplayerJoin, ping, sendCommand } from "@/lib/openbrush";
 import { useNetworkScanner } from "@/lib/useNetworkScanner";
 import { FBtn, type FBtnToast } from "@/components/ui/FBtn";
+import { downloadLocalZip, isLocalEnv } from "@/utils/download";
 
 const TOTAL = 6;
+const IS_LOCAL = isLocalEnv();
 
 export function Wizard() {
   const { t, i18n } = useTranslation();
