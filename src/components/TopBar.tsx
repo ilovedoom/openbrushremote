@@ -4,13 +4,26 @@ import { LANGS } from "@/i18n";
 
 export function TopBar() {
   const { t, i18n } = useTranslation();
-  const { tab, setTab, headsets } = useApp();
+  const { tab, setTab, headsets, isDemo } = useApp();
 
   const tabs: { id: "wizard" | "manager" | "wiki"; label: string }[] = [
     { id: "wizard", label: t("nav.wizard") },
     { id: "manager", label: t("nav.manager") },
     { id: "wiki", label: t("nav.wiki") },
   ];
+
+  const onlineCount = headsets.filter((h) => h.online === true).length;
+  let statusClass = "off";
+  let statusText: string = t("status.disconnected");
+  if (!isDemo && onlineCount > 0) {
+    statusClass = "ok";
+    statusText = onlineCount === 1
+      ? (headsets.find((h) => h.online)?.ip ?? `${onlineCount}`)
+      : t("status.nVisori", { count: onlineCount });
+  } else if (!isDemo && headsets.length > 0) {
+    statusClass = "busy";
+    statusText = t("status.connecting");
+  }
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-xl">
@@ -38,22 +51,16 @@ export function TopBar() {
           ))}
         </nav>
 
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5" title="Connection status">
-            {headsets.length === 0 ? (
-              <span className="text-xs text-muted-foreground">—</span>
-            ) : (
-              headsets.map((h) => (
-                <span
-                  key={h.id}
-                  title={`${h.name} (${h.ip})`}
-                  className={`inline-block h-2.5 w-2.5 rounded-full ${
-                    h.online === true ? "bg-[oklch(0.72_0.18_150)] glow-success" : h.online === false ? "bg-[oklch(0.62_0.24_25)]" : "bg-muted-foreground/50"
-                  }`}
-                />
-              ))
-            )}
-          </div>
+        <div className="flex items-center gap-2">
+          <span className={`status-pill ${statusClass}`} title="Connection status">
+            <span className="dot" />
+            {statusText}
+          </span>
+          {headsets.length >= 2 && (
+            <span className="headset-badge" title={t("status.headsetsConnected", { count: headsets.length })}>
+              🥽 {headsets.length}
+            </span>
+          )}
           <select
             value={i18n.language}
             onChange={(e) => i18n.changeLanguage(e.target.value)}

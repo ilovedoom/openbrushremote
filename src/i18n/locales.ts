@@ -4,6 +4,13 @@
 const en = {
   app: { name: "OB Remote", tagline: "Open Brush Remote Controller" },
   nav: { wizard: "🧙 Wizard", manager: "🎛️ Manager", wiki: "📖 Wiki" },
+  status: {
+    disconnected: "Disconnected",
+    connecting: "Connecting…",
+    scanning: "Scanning…",
+    nVisori: "{{count}} headsets",
+    headsetsConnected: "{{count}} headsets connected",
+  },
   common: {
     continue: "Continue",
     back: "Back",
@@ -203,6 +210,13 @@ const en = {
 const it: typeof en = {
   app: { name: "OB Remote", tagline: "Telecomando Open Brush" },
   nav: { wizard: "🧙 Wizard", manager: "🎛️ Manager", wiki: "📖 Wiki" },
+  status: {
+    disconnected: "Disconnesso",
+    connecting: "Connessione…",
+    scanning: "Scansione…",
+    nVisori: "{{count}} visori",
+    headsetsConnected: "{{count}} visori connessi",
+  },
   common: {
     continue: "Continua", back: "Indietro", skip: "Salta", skipToManager: "Vai al Manager",
     cancel: "Annulla", confirm: "Conferma", delete: "Elimina", add: "Aggiungi", retry: "Riprova",
