@@ -14,8 +14,14 @@ const queryClient = new QueryClient();
 
 function Shell() {
   const { tab } = useApp();
+  const isHttps = typeof window !== "undefined" && window.location.protocol === "https:";
   return (
     <div className="min-h-screen">
+      {isHttps && (
+        <div className="https-banner">
+          ⚠️ Attenzione: questa pagina è caricata via HTTPS. Safari su iPhone/iPad bloccherà le connessioni al visore. Apri il file <code>index.html</code> direttamente dalla app File (URL = <code>file://…</code>) o usa un server HTTP locale.
+        </div>
+      )}
       <TopBar />
       <main>
         {tab === "wizard" && <Wizard />}
